@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TicketPress – Raffle &amp; Event Ticket Maker</title>
+  <meta name="description" content="Print numbered raffle tickets and event tickets with tear-off stubs. Every ticket gets its own number. Simple, private and offline.">
+  <meta name="theme-color" content="#b91c1c">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <style id="pageRule"></style>
+  <style>.tpls button{aspect-ratio:2/1}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="icon-192.png" alt="" width="30" height="30"><span>TicketPress</span></div>
+    <span class="tree-title"></span>
+    <div class="top-btns">
+      <button id="printBtn" class="tb">🖨 Print</button>
+      <button id="moreBtn" class="tb">☰ More</button>
+      <button id="proBtn" class="pro-btn" hidden>★ Get Pro</button>
+    </div>
+    <div id="menu" class="menu" hidden>
+      <button id="raffleBtn">Example: school raffle</button>
+      <button id="eventBtn">Example: concert tickets</button>
+      <button id="resetBtn" class="danger">Start again…</button>
+      <a href="help.html" target="_blank" rel="noopener">❓ How to use TicketPress</a>
+      <a href="mailto:thequan03072002@gmail.com?subject=TicketPress%20feedback">✉ Feedback &amp; support</a>
+      <a href="https://apps.microsoft.com/detail/9NSLV1NJP0J5" target="_blank" rel="noopener">More apps: CertiPress certificate maker</a>
+      <a href="https://apps.microsoft.com/detail/9PJZFJ139JC2" target="_blank" rel="noopener">More apps: AddressPress envelope printer</a>
+    </div>
+    <input id="fileIn" type="file" accept="image/*" hidden>
+  </header>
+
+  <main class="layout">
+    <aside class="left">
+      <h2>1 · Kind of ticket</h2>
+      <div class="seg3" id="kinds" style="grid-template-columns:1fr 1fr">
+        <button data-k="raffle">Raffle tickets</button>
+        <button data-k="event">Event tickets</button>
+      </div>
+      <h2>2 · Numbers</h2>
+      <div class="two">
+        <label class="field">First number<input id="start" type="text" inputmode="numeric" maxlength="6"></label>
+        <label class="field">How many tickets<input id="count" type="text" inputmode="numeric" maxlength="4"></label>
+      </div>
+      <label class="field">Text before the number<input id="prefix" type="text" maxlength="8" placeholder="No."></label>
+      <p id="hint" class="hint"></p>
+      <button id="nextBatch" class="ghost">Continue numbering after this batch</button>
+
+      <h2>3 · Words</h2>
+      <label class="field">Event name<input id="title" type="text" maxlength="50"></label>
+      <label class="field">Organised by<input id="org" type="text" maxlength="60"></label>
+      <div class="two">
+        <label class="field">Date<input id="date" type="text" maxlength="40"></label>
+        <label class="field">Time<input id="time" type="text" maxlength="20"></label>
+      </div>
+      <label class="field">Place<input id="place" type="text" maxlength="70"></label>
+      <div class="two">
+        <label class="field">Price<input id="price" type="text" maxlength="12"></label>
+        <span></span>
+      </div>
+      <label class="field">Extra line (prize, notes)<input id="extra" type="text" maxlength="80"></label>
+      <label class="field" id="stubF">Lines on the stub – one per line<textarea id="stubLines" maxlength="80" spellcheck="false"></textarea></label>
+
+      <h2>4 · Design and paper</h2>
+      <div id="tpls" class="tpls"></div>
+      <div id="colors" class="swatches"></div>
+      <div class="two">
+        <label class="field">Paper<select id="paper"></select></label>
+        <label class="field">Tickets per sheet<select id="per"></select></label>
+      </div>
+      <label class="field">Lettering<select id="font"><option value="modern">Modern</option><option value="classic">Classic</option></select></label>
+      <div class="logo-row">
+        <button id="logoBtn" class="ghost">Add a logo picture…</button><span class="badge pro-only">PRO</span>
+        <button id="logoDel" class="ghost danger" hidden>Remove logo</button>
+      </div>
+    </aside>
+
+    <section class="stage">
+      <div id="pager" class="pager"></div>
+      <div class="preview">
+        <button id="prev" class="nav" title="Previous sheet">‹</button>
+        <div id="page" style="height:100%;display:flex;align-items:center;justify-content:center;min-width:0;flex:1"></div>
+        <button id="next" class="nav" title="Next sheet">›</button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="proDialog" class="dlg">
+    <h2>TicketPress Pro</h2>
+    <p class="muted">One-time purchase. Yours forever on this Microsoft account. The free version never limits how often you print.</p>
+    <ul class="pro-list">
+      <li><strong>All 8 designs</strong> <span class="muted">(Free: 3)</span></li>
+      <li><strong>Any number of tickets at a time</strong> – up to 5000 in one go <span class="muted">(Free: 100 at a time)</span></li>
+      <li><strong>Your own logo</strong> on every ticket</li>
+    </ul>
+    <p id="proMsg" class="pro-msg" hidden></p>
+    <div class="row-btns">
+      <button id="buyBtn" class="primary">Unlock Pro</button>
+      <button id="restoreBtn" class="ghost">Restore purchase</button>
+      <button id="closePro" class="ghost">Not now</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+  <div id="printArea"></div>
+  <script src="app.js"></script>
+</body>
+</html>

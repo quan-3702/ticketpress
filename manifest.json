@@ -1,0 +1,16 @@
+{
+  "name": "TicketPress - Raffle & Event Ticket Maker",
+  "short_name": "TicketPress",
+  "description": "Print numbered raffle tickets and event tickets with tear-off stubs. Every ticket gets its own number. Simple, private and offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#b91c1c",
+  "theme_color": "#b91c1c",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
