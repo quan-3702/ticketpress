@@ -143,3 +143,9 @@ textarea { min-height: 70px; resize: vertical; }
 #names { min-height: 120px; }
 #reason { min-height: 64px; }
 .logo-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.draw-dlg { min-width: min(560px, calc(100vw - 32px)); }
+.draw-dlg:fullscreen { width: 100vw; max-width: none; height: 100vh; max-height: none; display: flex; flex-direction: column; justify-content: center; }
+.draw-big { font-size: clamp(48px, 12vw, 160px); font-weight: 800; text-align: center; margin: 18px 0; color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.draw-big.rolling { opacity: .55; }
+.draw-list { margin: 10px 0 0; padding-left: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 15px; }

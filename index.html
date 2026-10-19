@@ -22,6 +22,7 @@
       <button id="proBtn" class="pro-btn" hidden>★ Get Pro</button>
     </div>
     <div id="menu" class="menu" hidden>
+      <button id="drawBtn">🎲 Draw a winner…</button>
       <button id="raffleBtn">Example: school raffle</button>
       <button id="eventBtn">Example: concert tickets</button>
       <button id="resetBtn" class="danger">Start again…</button>
@@ -72,6 +73,7 @@
         <label class="field">Tickets per sheet<select id="per"></select></label>
       </div>
       <label class="field">Lettering<select id="font"><option value="modern">Modern</option><option value="classic">Classic</option></select></label>
+      <label class="check"><input id="qrOn" type="checkbox"> Add a QR code with the ticket number <span class="badge pro-only">PRO</span></label>
       <div class="logo-row">
         <button id="logoBtn" class="ghost">Add a logo picture…</button><span class="badge pro-only">PRO</span>
         <button id="logoDel" class="ghost danger" hidden>Remove logo</button>
@@ -87,6 +89,23 @@
       </div>
     </section>
   </main>
+
+  <dialog id="drawDialog" class="dlg draw-dlg">
+    <h2>🎲 Draw a winner</h2>
+    <p class="muted">Type the range of ticket numbers that were sold. Every number has the same chance, and a number is never drawn twice.</p>
+    <div class="two">
+      <label class="field">From number<input id="drawFrom" type="text" inputmode="numeric" maxlength="7"></label>
+      <label class="field">To number<input id="drawTo" type="text" inputmode="numeric" maxlength="7"></label>
+    </div>
+    <div id="drawBig" class="draw-big">?</div>
+    <div class="row-btns">
+      <button id="drawGo" class="primary">🎲 Draw</button>
+      <button id="drawFull" class="ghost">⛶ Full screen</button>
+      <button id="drawReset" class="ghost">Start over</button>
+      <button id="drawClose" class="ghost">Close</button>
+    </div>
+    <ol id="drawList" class="draw-list"></ol>
+  </dialog>
 
   <dialog id="proDialog" class="dlg">
     <h2>TicketPress Pro</h2>
