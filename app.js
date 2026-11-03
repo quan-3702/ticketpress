@@ -7,6 +7,7 @@ const PRO_SKU = 'ticketpress_pro';
 const PRO_IDS = [PRO_SKU];
 let STORE_URL = 'https://apps.microsoft.com/detail/9PDLS6TMKHHQ';
 let proAvailable = false; // Pro limits apply only when the Store actually sells the add-on
+try { if ('getDigitalGoodsService' in window && localStorage.getItem('ticketpress-proavail') === '1') proAvailable = true; } catch (_) {} // keep Pro limits when offline
 let proSku = PRO_SKU;
 let isPro = false;
 try { isPro = localStorage.getItem('ticketpress-pro') === '1'; } catch (_) {}
@@ -18,9 +19,9 @@ function qrSvg(text, x, y, size, color) {
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   const q = qrcode(0, 'M'); q.addData(String(text)); q.make();
   const n = q.getModuleCount(), m = 2, k = size / (n + m * 2);
-  let d = '';
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${(x + (c + m) * k).toFixed(3)} ${(y + (r + m) * k).toFixed(3)}h${k.toFixed(3)}v${k.toFixed(3)}h-${k.toFixed(3)}z`;
-  return `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="#fff"/><path d="${d}" fill="${color || '#000'}"/>`;
+  let d = ''; // whole-module coordinates in a scaled group, one rectangle per run of dark modules – keeps 5000 tickets printable
+  for (let r = 0; r < n; r++) for (let c = 0; c < n;) { if (!q.isDark(r, c)) { c++; continue; } let e = c; while (e < n && q.isDark(r, e)) e++; d += `M${c + m} ${r + m}h${e - c}v1h-${e - c}z`; c = e; }
+  return `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="#fff"/><path transform="translate(${x} ${y}) scale(${k.toFixed(5)})" d="${d}" fill="${color || '#000'}"/>`;
 }
 const unlocked = () => isPro || !proAvailable;
 
@@ -38,17 +39,26 @@ function setPro(v) {
   document.body.classList.toggle('unlocked', unlocked());
   if (typeof renderAll === 'function') renderAll();
 }
+async function checkProAfterBuy() {
+  for (let i = 0; i < 6; i++) {
+    if (await checkPro()) return true;
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+  proMessage('Thank you! If Pro is not unlocked within a minute, click “Restore purchase”.');
+  return false;
+}
 async function checkPro() {
   const svc = await billing();
   if (!svc) return false;
   try {
     const details = await svc.getDetails(PRO_IDS).catch(() => []);
-    proAvailable = details.length > 0;
+    if (details.length) { proAvailable = true; try { localStorage.setItem('ticketpress-proavail', '1'); } catch (_) {} }
     if (details[0]) { proSku = details[0].itemId; if (!PRO_IDS.includes(proSku)) PRO_IDS.push(proSku); }
     const list = await svc.listPurchases();
     const owned = list.some((p) => PRO_IDS.includes(p.itemId));
-    setPro(owned);
-    return owned;
+    if (owned || details.length) { setPro(owned); return owned; }
+    setPro(isPro); // Store did not answer (offline): keep what we knew
+    return isPro;
   } catch (_) { return isPro; }
 }
 function proMessage(text) { const m = $('proMsg'); m.hidden = !text; m.textContent = text || ''; }
@@ -83,7 +93,7 @@ async function buyPro() {
     proMessage('Purchase could not be completed: ' + (e.message || e));
     return;
   }
-  if (await checkPro()) { proMessage('Thank you! Pro is unlocked. ★'); setTimeout(() => $('proDialog').close(), 1500); }
+  if (await checkProAfterBuy()) { proMessage('Thank you! Pro is unlocked. ★'); setTimeout(() => $('proDialog').close(), 1500); }
 }
 function needsPro(reason) {
   if (unlocked()) return false;
@@ -105,10 +115,12 @@ const tplLocked = (id) => !unlocked() && tplIndex(id) >= FREE_TPLS;
 let st = { kind: 'raffle', paper: 'letter', per: 10, tpl: 'classic', color: COLORS[0], font: 'modern', title: 'Spring Raffle', org: 'Maple Street School PTA', date: 'Saturday, May 16, 2026', time: '2:00 PM', place: 'School Gym, 128 Maple Street', price: '$2', extra: 'Grand prize: a weekend getaway for two', start: 1, count: 50, prefix: 'No.', stubLines: 'Name\nPhone', logo: '', qr: false };
 try { Object.assign(st, JSON.parse(localStorage.getItem('ticketpress') || '{}')); } catch (_) {}
 let saveTimer;
-function save() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem('ticketpress', JSON.stringify(st)); } catch (_) { toast('Could not save – the logo picture may be too large'); } }, 250); }
+function saveNow() { clearTimeout(saveTimer); try { localStorage.setItem('ticketpress', JSON.stringify(st)); } catch (_) { toast('Could not save – the logo picture may be too large'); } }
+function save() { clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 250); }
+if (typeof window !== 'undefined') window.addEventListener('pagehide', saveNow); // closing the window right after a change must not lose it
 const int = (v, lo, hi, d) => { const n = parseInt(String(v).replace(/[^\d]/g, ''), 10); return isFinite(n) && n >= lo && n <= hi ? n : d; };
 const startNo = () => int(st.start, 0, 999999, 1);
-const countNo = () => int(st.count, 1, 5000, 1);
+const countNo = () => Math.min(5000, int(st.count, 1, 9999, 1)); // 6000 means the maximum (5000), not 1
 function numText(n) { const last = startNo() + countNo() - 1, d = Math.max(3, String(last).length); return `${String(st.prefix || '').trim()} ${String(n).padStart(d, '0')}`.trim(); }
 
 // ---------- text measuring ----------
@@ -261,6 +273,7 @@ if (typeof document !== 'undefined') (function () {
     $('drawList').innerHTML = drawn.length ? drawn.map((n, i) => `<li><b>${i + 1}.</b> ${esc(numText(n))}</li>`).join('') : '<li class="muted">No winners drawn yet.</li>';
   }
   function drawOne() {
+    if ($('drawBig').classList.contains('rolling')) return; // a second click while rolling must not draw twice
     const a = parseInt($('drawFrom').value, 10), b = parseInt($('drawTo').value, 10);
     if (!(a >= 0) || !(b >= a)) { toast('Type the first and last ticket number that was sold.'); return; }
     const left = []; for (let n = a; n <= b && left.length < 200001; n++) if (!drawn.includes(n)) left.push(n);
